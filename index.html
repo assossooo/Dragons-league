@@ -60,6 +60,8 @@ nav{position:sticky;top:0;z-index:999;background:rgba(5,5,8,.96);backdrop-filter
 .nb{background:none;border:none;color:var(–muted);font-family:‘Barlow Condensed’,sans-serif;font-size:.88rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.9rem 1.1rem;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
 .nb:hover{color:var(–text);}
 .nb.on{color:var(–fire);border-bottom-color:var(–fire);}
+.nb.nb-tcg{background:linear-gradient(135deg,var(--gold),#ffdd55);color:#000!important;font-weight:900;border-radius:6px;margin:.3rem .4rem .3rem 0;box-shadow:0 0 10px rgba(255,184,0,.5);}
+.nb.nb-tcg.on{background:var(--gold);border-bottom-color:var(--gold);}
 
 /* ── PAGES ── */
 .pg{display:none;max-width:1200px;margin:0 auto;padding:2.5rem 1.2rem;animation:fup .3s ease;background:var(–darker);min-height:80vh;}
@@ -328,6 +330,7 @@ th:nth-child(n+7),td:nth-child(n+7){display:table-cell!important;}
 
 <nav>
   <div class="navi">
+    <button class="nb nb-tcg" onclick="goTo('tcg',this)">🐉 TCG</button>
     <button class="nb on" onclick="goTo('palmares',this)">🏆 Palmarès</button>
     <button class="nb" onclick="goTo('classement',this)">📊 Classement</button>
     <button class="nb" onclick="goTo('equipes',this)">⚽ Équipes</button>
@@ -340,6 +343,12 @@ th:nth-child(n+7),td:nth-child(n+7){display:table-cell!important;}
     <button class="nb" onclick="goTo('leader',this)">👑 1ère Place</button>
   </div>
 </nav>
+
+<div id="tcg" class="pg">
+  <div class="pt">🐉 TCG</div>
+  <div class="ps">Collection de cartes &amp; mode de jeu contre le bot</div>
+  <iframe src="tcg/index.html" style="width:100%;height:85vh;border:none;border-radius:12px;background:#000;"></iframe>
+</div>
 
 <div id="palmares" class="pg on">
   <div class="pt">Palmarès</div>
