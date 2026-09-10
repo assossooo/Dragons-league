@@ -515,7 +515,7 @@ function bestCard(pool, key){
 }
 function setupMatchTurn(){
   const attacker = state.turn, defender = attacker===1?2:1;
-  document.getElementById('match-turn-label').textContent = attacker===1 ? 'A toi d\\'attaquer — le bot defend' : 'Le bot attaque — a toi de defendre';
+  document.getElementById('match-turn-label').textContent = attacker===1 ? "A toi d'attaquer — le bot defend" : 'Le bot attaque — a toi de defendre';
   const atkPool = footballOf(attacker===1?state.recruited1:state.recruited2);
   const defPool = footballOf(defender===1?state.recruited1:state.recruited2);
   document.getElementById('atk-block').classList.toggle('hidden', attacker===2);
