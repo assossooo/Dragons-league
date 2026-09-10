@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dragons League TCG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pitch:#16302A; --pitch-2:#1D3F37; --parchment:#F4F0E6;
+    --gold:#C79A3E; --gold-dim:#8C7638; --ember:#A8402E; --ink:#17211D;
+    --line:rgba(23,33,29,0.14); --rare-blue:#1F5FA8; --common-grey:#5b5b5b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--pitch);
+    background-image:radial-gradient(circle at 20% 0%, rgba(199,154,62,0.10), transparent 45%);
+    color:var(--parchment); font-family:'Inter',sans-serif; min-height:100vh; padding-bottom:60px;
+  }
+  h1,h2,h3{font-family:'Fraunces',serif; margin:0;}
+  .wrap{max-width:900px;margin:0 auto;padding:16px 14px;}
+  .eyebrow{font-size:12px;color:var(--gold);margin-bottom:4px;}
+  .title{font-size:26px;font-weight:600;margin-bottom:2px;}
+  .subtitle{font-size:13px;color:rgba(244,240,230,0.6);margin-bottom:16px;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:18px;position:sticky;top:0;background:var(--pitch);padding:10px 0;z-index:20;}
+  .tab-btn{flex:1;padding:10px;border-radius:6px;border:1.5px solid var(--line);background:var(--pitch-2);color:var(--parchment);font-weight:600;font-size:13px;cursor:pointer;}
+  .tab-btn.active{background:var(--gold);color:var(--ink);border-color:var(--gold);}
+
+  .section-title{font-size:14px;color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;margin:22px 0 10px;font-weight:600;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;}
+  .card{
+    background:var(--parchment); border-radius:8px; overflow:hidden; cursor:pointer;
+    aspect-ratio:500/700; position:relative; box-shadow:0 2px 6px rgba(0,0,0,0.35);
+    transition:transform .15s;
+  }
+  .card:active{transform:scale(0.96);}
+  .card img{width:100%;height:100%;object-fit:cover;display:block;}
+  .card .cap{
+    position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.85));
+    color:#fff;font-size:10px;font-weight:600;padding:14px 6px 5px;text-align:center;
+  }
+  .card.president{
+    background:#fff;color:var(--ink);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:8px;text-align:center;border:2px solid var(--gold);
+  }
+  .card.president .pname{font-family:'Fraunces',serif;font-weight:700;font-size:13px;margin-bottom:6px;}
+  .card.president .peffect{font-size:9px;line-height:1.3;color:#444;}
+  .badge-rarity{position:absolute;top:5px;right:5px;font-size:8px;padding:2px 6px;border-radius:10px;font-weight:700;color:#fff;}
+  .badge-legendaire{background:var(--gold);color:#1a1a1a;}
+  .badge-rare{background:var(--rare-blue);}
+  .badge-commune{background:var(--common-grey);}
+  .badge-joueur{background:var(--ember);}
+  .badge-president{background:#7A3F9E;color:#fff;}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .modal-card{max-width:340px;width:100%;}
+  .modal-card img{width:100%;border-radius:12px;}
+  .modal-card .white-card{background:#fff;color:var(--ink);border-radius:12px;padding:24px;border:3px solid var(--gold);text-align:center;}
+  .modal-card .white-card .pname{font-family:'Fraunces',serif;font-size:22px;font-weight:700;margin-bottom:14px;}
+  .modal-card .white-card .peffect{font-size:14px;line-height:1.5;color:#333;}
+  .hidden{display:none !important;}
+
+  /* Game screens (from playtest engine) */
+  .g-card{background:var(--parchment);color:var(--ink);border-radius:6px;padding:18px;margin-bottom:14px;}
+  .g-card h3{font-size:15px;margin-bottom:10px;color:var(--pitch);}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .btn{background:var(--pitch);color:var(--parchment);border:none;border-radius:5px;padding:12px 16px;font-weight:600;font-size:14px;cursor:pointer;width:100%;}
+  .btn.gold{background:var(--gold);color:var(--ink);}
+  .btn.ghost{background:transparent;color:var(--pitch);border:1.5px solid var(--pitch);}
+  .btn.ember{background:var(--ember);color:var(--parchment);}
+  input[type=number]{font-size:16px;padding:10px;border-radius:5px;border:1.5px solid var(--line);width:100%;margin-top:6px;}
+  select{font-size:15px;padding:10px;border-radius:5px;border:1.5px solid var(--line);width:100%;margin-top:6px;background:#fff;}
+  .stat{font-family:'Fraunces',serif;font-size:22px;font-weight:600;}
+  .label{font-size:11px;color:rgba(23,33,29,0.55);}
+  .divider{height:1px;background:var(--line);margin:12px 0;}
+  .flex-cols{display:flex;gap:10px;}
+  .flex-cols>div{flex:1;}
+  .score-row{display:flex;justify-content:center;gap:26px;margin:14px 0;}
+  .score-box{text-align:center;}
+  .score-box .n{font-family:'Fraunces',serif;font-size:40px;font-weight:700;color:var(--gold);}
+  .score-box .l{font-size:12px;color:rgba(244,240,230,0.6);}
+  .center{text-align:center;}
+  .big{font-size:38px;font-family:'Fraunces',serif;font-weight:600;}
+  .reveal-img{width:140px;border-radius:8px;margin:10px auto;display:block;box-shadow:0 3px 10px rgba(0,0,0,0.3);}
+  .mini-img{width:60px;border-radius:5px;vertical-align:middle;margin-right:8px;}
+  .president-strip{display:flex;gap:10px;margin-bottom:14px;}
+  .president-strip .pcard{flex:1;background:#fff;color:var(--ink);border-radius:8px;padding:10px;text-align:center;border:2px solid var(--gold);}
+  .president-strip .pcard .pn{font-family:'Fraunces',serif;font-weight:700;font-size:12px;}
+  .president-strip .pcard .pe{font-size:9px;color:#555;margin-top:4px;line-height:1.3;}
+  .log{font-size:12px;color:rgba(244,240,230,0.55);margin-top:10px;line-height:1.6;max-height:140px;overflow-y:auto;}
+  .log div{padding:2px 0;border-bottom:1px dashed rgba(244,240,230,0.1);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">DRAGONS LEAGUE</div>
+  <div class="title">TCG — Collection &amp; Playtest</div>
+  <div class="subtitle">62 cartes officielles — Joueurs, Bonus/Action, Presidents, Legendaires</div>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-collection-btn" onclick="showTab('collection')">Collection</button>
+    <button class="tab-btn" id="tab-play-btn" onclick="showTab('play')">Jouer</button>
+  </div>
+
+  <!-- ============ COLLECTION TAB ============ -->
+  <div id="tab-collection">
+    <div class="section-title">⚽ Joueurs (16)</div>
+    <div class="grid" id="grid-joueur"></div>
+    <div class="section-title">⚪ Bonus/Action Communes (13)</div>
+    <div class="grid" id="grid-commune"></div>
+    <div class="section-title">🔵 Bonus/Action Rares (14)</div>
+    <div class="grid" id="grid-rare"></div>
+    <div class="section-title">🟣 Presidents / Epic (14) — visuel a venir</div>
+    <div class="grid" id="grid-president"></div>
+    <div class="section-title">🟡 Legendaires (6) — collector, hors gameplay</div>
+    <div class="grid" id="grid-legendaire"></div>
+  </div>
+
+  <!-- ============ PLAY TAB ============ -->
+  <div id="tab-play" class="hidden">
+
+    <div id="screen-setup">
+      <div class="g-card">
+        <h3>Avantage domicile</h3>
+        <p style="font-size:13px;color:rgba(23,33,29,0.7);margin:0 0 10px;">Lance un de. Le bot lance le sien. Le plus haut score remporte la premiere egalite du match, qu'il attaque ou defende.</p>
+        <div class="flex-cols">
+          <div><div class="label">Ton de</div><input type="number" id="dice1" min="1" max="6" placeholder="1-6"></div>
+          <div><div class="label">De du bot</div><input type="number" id="dice2" min="1" max="6" placeholder="1-6"></div>
+        </div>
+        <button class="btn gold" style="margin-top:10px;" onclick="rollDice()">Lancer au hasard</button>
+        <div id="dice-result" style="margin-top:10px;font-size:13px;font-weight:600;"></div>
+      </div>
+      <div class="g-card">
+        <h3>Presidents (attribution aleatoire)</h3>
+        <div class="president-strip" id="president-preview"></div>
+        <button class="btn ghost" onclick="rerollPresidents()">Retirer les Presidents</button>
+      </div>
+      <button class="btn" id="start-mercato-btn" onclick="startMercato()" disabled>Commencer le Mercato</button>
+    </div>
+
+    <div id="screen-mercato" class="hidden">
+      <div class="g-card">
+        <div class="row">
+          <div><div class="label">Ton budget</div><div class="stat" id="budget1">100 M€</div></div>
+          <div style="text-align:right;"><div class="label">Budget du bot</div><div class="stat" id="budget2">100 M€</div></div>
+        </div>
+      </div>
+      <div class="g-card center">
+        <div class="label" id="mercato-progress">Carte 1 / 24</div>
+        <h3 id="reveal-owner">—</h3>
+        <img id="reveal-img" class="reveal-img" src="" alt="">
+        <div id="reveal-card-name" style="font-size:17px;font-weight:600;"></div>
+        <div style="text-align:left;">
+          <div id="bid-step-1">
+            <div class="divider"></div>
+            <div class="label" id="bid1-label">Ta mise secrete</div>
+            <input type="number" id="bid1" placeholder="M€" min="0">
+            <button class="btn ghost" style="margin-top:8px;" onclick="lockBid1()">Valider ma mise</button>
+          </div>
+          <div id="bid-result" class="hidden">
+            <div class="divider"></div>
+            <div id="result-text" style="font-size:14px;font-weight:600;margin-bottom:10px;"></div>
+            <button class="btn gold" onclick="nextCard()">Carte suivante</button>
+          </div>
+        </div>
+      </div>
+      <div class="g-card">
+        <h3>Recrutees</h3>
+        <div class="flex-cols">
+          <div><div class="label">Toi</div><div id="recruited1" style="font-size:12px;line-height:1.7;"></div></div>
+          <div><div class="label">Bot</div><div id="recruited2" style="font-size:12px;line-height:1.7;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen-match" class="hidden">
+      <div class="g-card center">
+        <div class="label">MATCH — premier a 4 buts</div>
+        <div class="score-row">
+          <div class="score-box"><div class="n" id="score1">0</div><div class="l">Toi</div></div>
+          <div class="score-box"><div class="n" id="score2">0</div><div class="l">Bot</div></div>
+        </div>
+      </div>
+      <div class="g-card">
+        <h3 id="match-turn-label">A toi d'attaquer</h3>
+        <div id="atk-block">
+          <div class="label">Ta carte ATTAQUE</div>
+          <select id="atk-select"></select>
+          <img id="atk-img" class="mini-img hidden" src="">
+        </div>
+        <div id="def-block">
+          <div class="label">Ta carte DEFENSE</div>
+          <select id="def-select"></select>
+          <img id="def-img" class="mini-img hidden" src="">
+        </div>
+        <div class="divider"></div>
+        <div class="flex-cols">
+          <div><div class="label">Bonus manuel ATT (+/-)</div><input type="number" id="atk-mod" value="0"></div>
+          <div><div class="label">Bonus manuel DEF (+/-)</div><input type="number" id="def-mod" value="0"></div>
+        </div>
+        <p style="font-size:11px;color:rgba(23,33,29,0.55);margin-top:6px;">Si une carte Bonus/Action ou un pouvoir President est joue, ajuste ici manuellement puis resous.</p>
+        <button class="btn ember" style="margin-top:12px;" onclick="resolveMatch()" id="resolve-btn">Resoudre le duel</button>
+      </div>
+      <div class="g-card">
+        <div class="label">Journal du match</div>
+        <div class="log" id="match-log"></div>
+      </div>
+    </div>
+
+    <div id="screen-report" class="hidden">
+      <div class="g-card center">
+        <div class="eyebrow" style="color:var(--gold-dim);">VICTOIRE</div>
+        <div class="big" id="winner-text">—</div>
+      </div>
+      <div class="g-card">
+        <h3>Rapport</h3>
+        <div id="report-body" style="font-size:13px;line-height:1.8;"></div>
+      </div>
+      <button class="btn gold" onclick="location.reload()">Nouvelle partie</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-bg hidden" id="modal-bg" onclick="closeModal()">
+  <div class="modal-card" id="modal-content" onclick="event.stopPropagation()"></div>
+</div>
+
+<script>
+const A = "assets/";
+
+const PLAYERS = [
+  {name:"Renard des surfaces", att:5, def:1, img:A+"joueur-renard-des-surfaces.jpg"},
+  {name:"Le Buteur", att:5, def:2, img:A+"joueur-le-buteur.jpg"},
+  {name:"L'Ailier", att:4, def:2, img:A+"joueur-l-ailier.jpg"},
+  {name:"Le Numero 10", att:4, def:3, img:A+"joueur-le-numero-10.jpg"},
+  {name:"Le Meneur", att:3, def:4, img:A+"joueur-le-meneur.jpg"},
+  {name:"La Pepite", att:3, def:2, img:A+"joueur-la-pepite.jpg"},
+  {name:"Le Technicien", att:4, def:2, img:A+"joueur-le-technicien.jpg"},
+  {name:"Le Super-Sub", att:3, def:1, img:A+"joueur-le-super-sub.jpg"},
+  {name:"Le Gardien", att:1, def:5, img:A+"joueur-le-gardien.jpg"},
+  {name:"Le Mur", att:2, def:5, img:A+"joueur-le-mur.jpg"},
+  {name:"Le Defenseur", att:2, def:4, img:A+"joueur-le-defenseur.jpg"},
+  {name:"Le Stoppeur", att:1, def:4, img:A+"joueur-le-stoppeur.jpg"},
+  {name:"Le Libero", att:3, def:4, img:A+"joueur-le-libero.jpg"},
+  {name:"Le Lateral", att:3, def:3, img:A+"joueur-le-lateral.jpg"},
+  {name:"Le Chien de garde", att:2, def:4, img:A+"joueur-le-chien-de-garde.jpg"},
+  {name:"Le Veteran", att:3, def:3, img:A+"joueur-le-veteran.jpg"},
+];
+
+const COMMONS = [
+  {name:"Le Banc", effect:"Recupere immediatement 1 Joueur deja utilise : il redevient disponible.", img:A+"commune-le-banc.jpg"},
+  {name:"Le Blesse", effect:"1 Joueur adverse disponible est choisi au hasard et ne peut pas etre utilise lors de la prochaine confrontation.", img:A+"commune-le-blesse.jpg"},
+  {name:"Le Coach", effect:"Apres avoir choisi ton Joueur, tu peux le remplacer par un autre Joueur disponible avant la revelation.", img:A+"commune-le-coach.jpg"},
+  {name:"Le Stade", effect:"Pour cette confrontation, tu remportes l'egalite meme a l'exterieur.", img:A+"commune-le-stade.jpg"},
+  {name:"La VAR", effect:"Annule la carte Bonus/Action jouee par l'adversaire sur cette confrontation.", img:A+"commune-la-var.jpg"},
+  {name:"Carton Rouge", effect:"Le Joueur adverse concerne reste indisponible pendant le prochain cycle complet.", img:A+"commune-carton-rouge.jpg"},
+  {name:"Le Penalty", effect:"+2 ATT pour cette attaque.", img:A+"commune-le-penalty.jpg"},
+  {name:"0-0", effect:"Si le score est toujours de 0-0 : +2 DEF pour cette confrontation.", img:A+"commune-0-0.jpg"},
+  {name:"But MPG", effect:"Si ton ATT est exactement 1 point inferieur a la DEF adverse, le resultat devient une egalite.", img:A+"commune-but-mpg.jpg"},
+  {name:"Hold-up", effect:"Si tu joues a l'exterieur et en defense, et que ta DEF est exactement 1 point inferieure a l'ATT adverse, le but est empeche.", img:A+"commune-hold-up.jpg"},
+  {name:"Remontada", effect:"Si tu es mene : +1 ATT. Mene de 2 : +2 ATT. Mene de 3 : +3 ATT.", img:A+"commune-remontada.jpg"},
+  {name:"Le Seum", effect:"Apres avoir encaisse un but, pioche 1 carte Bonus/Action.", img:A+"commune-le-seum.jpg"},
+  {name:"Journee MPG", effect:"Les deux joueurs piochent 1 carte Bonus/Action.", img:A+"commune-journee-mpg.jpg"},
+];
+
+const RARES = [
+  {name:"Braquage Mercato", effect:"Si ton adversaire remporte l'enchere pour bloquer ton recrutement, il doit payer 5 M€ supplementaires.", img:A+"rare-braquage-mercato.jpg"},
+  {name:"Guerre des Encheres", effect:"Apres revelation des mises, annule l'enchere et recommence-la. Les deux joueurs peuvent modifier leur mise.", img:A+"rare-guerre-des-encheres.jpg"},
+  {name:"500 Millions", effect:"Ajoute immediatement 15 M€ a ton budget Mercato.", img:A+"rare-500-millions.jpg"},
+  {name:"Clasico", effect:"Joue avant le choix des Joueurs. Pour cette confrontation, aucune autre carte Bonus/Action ne peut etre jouee.", img:A+"rare-clasico.jpg"},
+  {name:"Bonus MPG", effect:"Pour cette confrontation, choisis : +2 ATT ou +2 DEF.", img:A+"rare-bonus-mpg.jpg"},
+  {name:"Miroir", effect:"Apres revelation des Joueurs, copie l'effet de la carte Bonus/Action jouee par ton adversaire.", img:A+"rare-miroir.jpg"},
+  {name:"Zahia", effect:"Choisis 1 Joueur adverse. Il est indisponible pour les 2 prochaines confrontations.", img:A+"rare-zahia.jpg"},
+  {name:"Chapron Rouge", effect:"Annule cette confrontation. Le Joueur adverse compte comme utilise. Ton Joueur reste disponible.", img:A+"rare-chapron-rouge.jpg"},
+  {name:"Suarez", effect:"Joue uniquement lorsque tu attaques. Le Joueur adverse qui defend subit -2 DEF.", img:A+"rare-suarez.jpg"},
+  {name:"90+7", effect:"Si ton adversaire a 3 buts et est sur le point de marquer son 4e, annule ce but.", img:A+"rare-90-7.jpg"},
+  {name:"Valise", effect:"Annule un but que tu viens d'encaisser.", img:A+"rare-valise.jpg"},
+  {name:"Lanterne Rouge", effect:"Si tu es mene 0-3 ou 1-3, ton Joueur gagne +2 dans la statistique utilisee lors de la prochaine confrontation.", img:A+"rare-lanterne-rouge.jpg"},
+  {name:"Groupe WhatsApp", effect:"Regarde les 3 prochaines cartes Bonus/Action. Prends-en 1.", img:A+"rare-groupe-whatsapp.jpg"},
+  {name:"La Malediction", effect:"Choisis aleatoirement 1 Joueur adverse. Il subit -1 ATT et -1 DEF jusqu'a la fin de son cycle actuel.", img:A+"rare-la-malediction.jpg"},
+];
+
+const LEGENDARIES = [
+  {name:"Capri Sun", img:A+"legendaire-capri-sun.jpg"},
+  {name:"Record de titres", img:A+"legendaire-record-de-titres.jpg"},
+  {name:"Le Chaos de la S18", img:A+"legendaire-le-chaos-de-la-s18.jpg"},
+  {name:"Record de points", img:A+"legendaire-record-de-points.jpg"},
+  {name:"Prisonico", img:A+"legendaire-prisonico.jpg"},
+  {name:"Maimon - Le 11eme Homme", img:A+"legendaire-maimon-le-11eme-homme.jpg"},
+];
+
+const PRESIDENTS = [
+  {name:"Assossooo", tag:"C'etait mieux avant", effect:"Lorsqu'il est mene, le premier Joueur utilise a chaque nouveau cycle recoit +1 a la statistique utilisee."},
+  {name:"Bitanos", tag:"Tout ou rien", effect:"S'il mene : +1 DEF. S'il est mene : +1 ATT. Egalite : de -> +1 ATT sur 3/4/5/6."},
+  {name:"FC Ethan", tag:"Droit au but", effect:"Designe 2 Joueurs en debut de match. Ils obtiennent +1 ATT / -1 DEF pendant tout le match."},
+  {name:"Manu", tag:"Monobloc", effect:"Designe 3 Joueurs (Monobloc). Une fois par cycle, si 2 d'entre eux sont utilises consecutivement, le 2e recoit +1."},
+  {name:"Chal FC", tag:"Saison interrompue", effect:"Une fois par match, si Chal FC encaisse le 4e but, lance le de : sur 3/6 le but est annule."},
+  {name:"Raph'co Team", tag:"Tous les coups sont permis", effect:"Une fois par cycle, apres revelation, lance le de : sur 3/6 le Joueur adverse subit -1 dans la statistique utilisee."},
+  {name:"Bencolympique", tag:"Penurie de gardiens", effect:"Tous les Joueurs adverses ayant DEF >= 4 subissent -1 DEF."},
+  {name:"FC Shmoul", tag:"Eternel deuxieme", effect:"Quand l'adversaire atteint 3 buts, +1 ATT tant qu'il reste a 3."},
+  {name:"BambOlympique", tag:"Petit nouveau", effect:"Les 3 premieres confrontations du match, le Joueur utilise recoit +1 a sa statistique."},
+  {name:"FC Jojo", tag:"Age d'or", effect:"Pendant son premier cycle, lance le de pour chaque Joueur : sur 3/6, +1 a la statistique utilisee."},
+  {name:"Chelli's Team", tag:"Rotaldo", effect:"Quand un Joueur perd une confrontation, lance le de : sur 3/6 il ne compte pas comme utilise."},
+  {name:"Zenden", tag:"Le Fondateur", effect:"Pioche 1 carte Bonus/Action supplementaire au debut du match (4 au lieu de 3)."},
+  {name:"Gabayern", tag:"Passage eclair", effect:"Une fois par match, avant une confrontation, lance le de : sur 3/6, +1 ATT et +1 DEF."},
+  {name:"Danuzz", tag:"Derniere seconde", effect:"Au Mercato, quand il gagne une de ses cartes avec une mise <=5 M€, recupere 3 M€ (max 3 fois)."},
+];
+
+// ---------- Tabs ----------
+function showTab(t){
+  document.getElementById('tab-collection').classList.toggle('hidden', t!=='collection');
+  document.getElementById('tab-play').classList.toggle('hidden', t!=='play');
+  document.getElementById('tab-collection-btn').classList.toggle('active', t==='collection');
+  document.getElementById('tab-play-btn').classList.toggle('active', t==='play');
+}
+
+// ---------- Collection rendering ----------
+function cardHTML(item, badgeClass, badgeText, statText){
+  return `<div class="card" onclick='openModal(${JSON.stringify(item).replace(/'/g,"&#39;")}, "${badgeClass}")'>
+    <img src="${item.img}" alt="${item.name}" loading="lazy">
+    <span class="badge-rarity ${badgeClass}">${badgeText}</span>
+    <div class="cap">${item.name}${statText?` · ${statText}`:''}</div>
+  </div>`;
+}
+function presidentCardHTML(p){
+  return `<div class="card president" onclick='openPresidentModal(${JSON.stringify(p).replace(/'/g,"&#39;")})'>
+    <span class="badge-rarity badge-president">EPIC</span>
+    <div class="pname">${p.name}</div>
+    <div class="peffect">${p.tag}</div>
+  </div>`;
+}
+
+document.getElementById('grid-joueur').innerHTML = PLAYERS.map(p=>cardHTML(p,'badge-joueur','JOUEUR', `ATT${p.att}/DEF${p.def}`)).join('');
+document.getElementById('grid-commune').innerHTML = COMMONS.map(c=>cardHTML(c,'badge-commune','COMMUNE')).join('');
+document.getElementById('grid-rare').innerHTML = RARES.map(c=>cardHTML(c,'badge-rare','RARE')).join('');
+document.getElementById('grid-legendaire').innerHTML = LEGENDARIES.map(c=>cardHTML(c,'badge-legendaire','LEGENDAIRE')).join('');
+document.getElementById('grid-president').innerHTML = PRESIDENTS.map(p=>presidentCardHTML(p)).join('');
+
+function openModal(item, badgeClass){
+  const content = document.getElementById('modal-content');
+  let statLine = (item.att!==undefined) ? `<div style="color:#fff;text-align:center;margin-top:8px;font-family:'Fraunces',serif;font-size:18px;">ATT ${item.att} &nbsp;|&nbsp; DEF ${item.def}</div>` : '';
+  let effectLine = item.effect ? `<div style="color:#fff;text-align:center;margin-top:8px;font-size:13px;background:rgba(0,0,0,0.6);padding:10px;border-radius:8px;">${item.effect}</div>` : '';
+  content.innerHTML = `<img src="${item.img}" alt="${item.name}">${statLine}${effectLine}`;
+  document.getElementById('modal-bg').classList.remove('hidden');
+}
+function openPresidentModal(p){
+  const content = document.getElementById('modal-content');
+  content.innerHTML = `<div class="white-card">
+    <div class="pname">${p.name}</div>
+    <div style="font-size:12px;color:var(--gold-dim);font-style:italic;margin-bottom:10px;">"${p.tag}"</div>
+    <div class="peffect">${p.effect}</div>
+  </div>`;
+  document.getElementById('modal-bg').classList.remove('hidden');
+}
+function closeModal(){ document.getElementById('modal-bg').classList.add('hidden'); }
+
+// ==========================================================
+// ================ PLAY: MERCATO + MATCH ==================
+// ==========================================================
+
+let state = {
+  home:null, budget1:100, budget2:100,
+  pile1:[], pile2:[], order:[], idx:0,
+  recruited1:[], recruited2:[], eliminated1:[], eliminated2:[],
+  goals1:0, goals2:0, turn:1,
+  pres1:null, pres2:null,
+};
+
+function pickRandomTeam(){
+  const shuffled = [...PLAYERS].sort(()=>Math.random()-0.5);
+  return shuffled.slice(0,5);
+}
+function pickRandomBonusHand(){
+  const pool = [...COMMONS, ...RARES];
+  const shuffled = pool.sort(()=>Math.random()-0.5);
+  return shuffled.slice(0,3);
+}
+function rerollPresidents(){
+  const shuffled = [...PRESIDENTS].sort(()=>Math.random()-0.5);
+  state.pres1 = shuffled[0]; state.pres2 = shuffled[1];
+  document.getElementById('president-preview').innerHTML = [state.pres1,state.pres2].map((p,i)=>`
+    <div class="pcard"><div class="pn">${i===0?'Toi':'Bot'} — ${p.name}</div><div class="pe">${p.effect}</div></div>
+  `).join('');
+}
+rerollPresidents();
+
+function rollDice(){
+  const d1 = Math.floor(Math.random()*6)+1;
+  const d2 = Math.floor(Math.random()*6)+1;
+  document.getElementById('dice1').value = d1;
+  document.getElementById('dice2').value = d2;
+  evalDice();
+}
+document.getElementById('dice1').addEventListener('input', evalDice);
+document.getElementById('dice2').addEventListener('input', evalDice);
+function evalDice(){
+  const d1 = parseInt(document.getElementById('dice1').value);
+  const d2 = parseInt(document.getElementById('dice2').value);
+  const resultEl = document.getElementById('dice-result');
+  const startBtn = document.getElementById('start-mercato-btn');
+  if(isNaN(d1)||isNaN(d2)){ resultEl.textContent=''; startBtn.disabled=true; return; }
+  if(d1===d2){ resultEl.textContent='Egalite — relance.'; startBtn.disabled=true; return; }
+  state.home = d1>d2 ? 1 : 2;
+  resultEl.textContent = (state.home===1?'Toi es':'Le bot est')+' a domicile (gagne la 1ere egalite, quel que soit ton role).';
+  startBtn.disabled = false;
+}
+
+function startMercato(){
+  state.pile1 = pickRandomTeam();
+  state.pile2 = pickRandomTeam();
+  const bonus1 = pickRandomBonusHand();
+  const bonus2 = pickRandomBonusHand();
+  for(let i=0;i<5;i++){
+    state.order.push({owner:1, card:{...state.pile1[i], type:'JOUEUR'}});
+    state.order.push({owner:2, card:{...state.pile2[i], type:'JOUEUR'}});
+  }
+  for(let i=0;i<3;i++){
+    state.order.push({owner:1, card:{...bonus1[i], type:'BONUS'}});
+    state.order.push({owner:2, card:{...bonus2[i], type:'BONUS'}});
+  }
+  document.getElementById('screen-setup').classList.add('hidden');
+  document.getElementById('screen-mercato').classList.remove('hidden');
+  showCard();
+}
+
+function cardWeight(card){ return card.att!==undefined ? Math.max(card.att,card.def) : 3; }
+function remainingCardsForOwner(owner){
+  let c=0; for(let i=state.idx;i<state.order.length;i++) if(state.order[i].owner===owner) c++;
+  return Math.max(1,c);
+}
+function botBid(card, isOwner, botBudget, remainingBotCards){
+  const weight = cardWeight(card);
+  const perCard = botBudget / Math.max(1,remainingBotCards);
+  let intensity = isOwner ? 1 : 0.75;
+  if(!isOwner && weight<3) intensity *= 0.4;
+  const r = 0.75+Math.random()*0.6;
+  let bid = Math.round(perCard*(weight/5)*intensity*r);
+  return Math.max(0, Math.min(bid, botBudget));
+}
+
+function showCard(){
+  const item = state.order[state.idx];
+  document.getElementById('mercato-progress').textContent = `Carte ${state.idx+1} / ${state.order.length}`;
+  document.getElementById('reveal-owner').textContent = item.owner===1 ? 'Ta carte' : 'Carte du bot';
+  document.getElementById('reveal-img').src = item.card.img;
+  document.getElementById('reveal-card-name').textContent = item.card.name + (item.card.att!==undefined ? ` (ATT${item.card.att}/DEF${item.card.def})` : '');
+  document.getElementById('bid-step-1').classList.remove('hidden');
+  document.getElementById('bid-result').classList.add('hidden');
+  document.getElementById('bid1').value = '';
+  document.getElementById('bid1-label').textContent = item.owner===1 ? 'Ta mise (tu recrutes ?)' : 'Ta mise (tu bloques le bot ?)';
+  renderBudgets(); renderRecruited();
+}
+function renderBudgets(){
+  document.getElementById('budget1').textContent = state.budget1+' M€';
+  document.getElementById('budget2').textContent = state.budget2+' M€';
+}
+function renderRecruited(){
+  document.getElementById('recruited1').innerHTML = state.recruited1.map(c=>`• ${c.name}`).join('<br>') || '<span style="opacity:0.5">—</span>';
+  document.getElementById('recruited2').innerHTML = state.recruited2.map(c=>`• ${c.name}`).join('<br>') || '<span style="opacity:0.5">—</span>';
+}
+function lockBid1(){
+  const v = parseInt(document.getElementById('bid1').value);
+  if(isNaN(v)||v<0){ alert('Entre une mise valide'); return; }
+  const item = state.order[state.idx];
+  const botIsOwner = item.owner===2;
+  const bBid = botBid(item.card, botIsOwner, state.budget2, remainingCardsForOwner(2));
+  resolveBid(v, bBid);
+}
+function resolveBid(bid1, bid2){
+  const item = state.order[state.idx];
+  const owner = item.owner;
+  const ownerBid = owner===1?bid1:bid2;
+  const oppBid = owner===1?bid2:bid1;
+  let winner;
+  if(ownerBid>oppBid) winner='owner';
+  else if(oppBid>ownerBid) winner='opponent';
+  else winner = (state.home===owner) ? 'owner' : 'opponent';
+  let text='';
+  const nameOf = n => n===1?'Toi':'Le bot';
+  if(winner==='owner'){
+    if(owner===1){ state.budget1-=ownerBid; state.recruited1.push(item.card); }
+    else { state.budget2-=ownerBid; state.recruited2.push(item.card); }
+    text = `${nameOf(owner)} garde "${item.card.name}" (mise ${ownerBid} M€).`;
+  } else {
+    if(owner===1){ state.budget2-=oppBid; state.eliminated1.push(item.card); }
+    else { state.budget1-=oppBid; state.eliminated2.push(item.card); }
+    text = `${nameOf(owner===1?2:1)} bloque "${item.card.name}" (paie ${oppBid} M€). Carte eliminee.`;
+  }
+  text += ` (mise du bot: ${owner===1?oppBid:ownerBid} M€)`;
+  document.getElementById('result-text').textContent = text;
+  document.getElementById('bid-step-1').classList.add('hidden');
+  document.getElementById('bid-result').classList.remove('hidden');
+  renderBudgets(); renderRecruited();
+}
+function nextCard(){
+  state.idx++;
+  if(state.idx>=state.order.length) endMercato();
+  else showCard();
+}
+function endMercato(){
+  document.getElementById('screen-mercato').classList.add('hidden');
+  document.getElementById('screen-match').classList.remove('hidden');
+  setupMatchTurn();
+}
+function footballOf(list){ return list.filter(c=>c.att!==undefined); }
+function bestCard(pool, key){
+  const f = pool.filter(c=>c.att!==undefined);
+  if(!f.length) return null;
+  f.sort((a,b)=>b[key]-a[key]);
+  if(f.length>1 && Math.random()<0.2) return f[1];
+  return f[0];
+}
+function setupMatchTurn(){
+  const attacker = state.turn, defender = attacker===1?2:1;
+  document.getElementById('match-turn-label').textContent = attacker===1 ? 'A toi d\\'attaquer — le bot defend' : 'Le bot attaque — a toi de defendre';
+  const atkPool = footballOf(attacker===1?state.recruited1:state.recruited2);
+  const defPool = footballOf(defender===1?state.recruited1:state.recruited2);
+  document.getElementById('atk-block').classList.toggle('hidden', attacker===2);
+  document.getElementById('def-block').classList.toggle('hidden', defender===2);
+  if(attacker===2){ state._botAtk = bestCard(atkPool,'att'); }
+  else {
+    const sel = document.getElementById('atk-select');
+    sel.innerHTML = atkPool.length ? atkPool.map(c=>`<option value="${c.att}" data-img="${c.img}">${c.name} — ATT ${c.att}</option>`).join('') : '<option value="0">Aucune carte</option>';
+    updateMiniImg('atk-select','atk-img');
+  }
+  if(defender===2){ state._botDef = bestCard(defPool,'def'); }
+  else {
+    const sel = document.getElementById('def-select');
+    sel.innerHTML = defPool.length ? defPool.map(c=>`<option value="${c.def}" data-img="${c.img}">${c.name} — DEF ${c.def}</option>`).join('') : '<option value="0">Aucune carte</option>';
+    updateMiniImg('def-select','def-img');
+  }
+  document.getElementById('atk-mod').value=0; document.getElementById('def-mod').value=0;
+}
+function updateMiniImg(selId, imgId){
+  const sel = document.getElementById(selId);
+  const img = document.getElementById(imgId);
+  function refresh(){
+    const opt = sel.options[sel.selectedIndex];
+    if(opt && opt.dataset.img){ img.src = opt.dataset.img; img.classList.remove('hidden'); }
+    else img.classList.add('hidden');
+  }
+  sel.onchange = refresh;
+  refresh();
+}
+function resolveMatch(){
+  const attacker=state.turn, defender=attacker===1?2:1;
+  let atkVal, defVal;
+  if(attacker===2) atkVal = state._botAtk ? state._botAtk.att : 0;
+  else atkVal = parseInt(document.getElementById('atk-select').value||0) + parseInt(document.getElementById('atk-mod').value||0);
+  if(defender===2) defVal = state._botDef ? state._botDef.def : 0;
+  else defVal = parseInt(document.getElementById('def-select').value||0) + parseInt(document.getElementById('def-mod').value||0);
+
+  const log = document.getElementById('match-log');
+  const nameOf = n=>n===1?'Toi':'Le bot';
+  let entry;
+  let goal=false;
+  if(atkVal>defVal) goal=true;
+  else if(atkVal===defVal){
+    if(!state.homeTieUsed){
+      if(attacker===state.home) goal=true;
+      state.homeTieUsed = true;
+    }
+  }
+  if(goal){ if(attacker===1) state.goals1++; else state.goals2++; entry=`⚽ BUT ${nameOf(attacker)} ! (ATT ${atkVal} vs DEF ${defVal})`; }
+  else entry = `🛡️ ${nameOf(defender)} tient bon (ATT ${atkVal} vs DEF ${defVal}).`;
+  const line=document.createElement('div'); line.textContent=entry; log.prepend(line);
+  document.getElementById('score1').textContent=state.goals1;
+  document.getElementById('score2').textContent=state.goals2;
+  if(state.goals1>=4||state.goals2>=4){ showReport(); return; }
+  state.turn=defender; setupMatchTurn();
+}
+function showReport(){
+  document.getElementById('screen-match').classList.add('hidden');
+  document.getElementById('screen-report').classList.remove('hidden');
+  const winner = state.goals1>=4?1:2;
+  document.getElementById('winner-text').textContent = winner===1?'Toi 🎉':'Le bot';
+  const body=document.getElementById('report-body');
+  body.innerHTML = `
+    <div><strong>Score final :</strong> ${state.goals1} - ${state.goals2}</div>
+    <div><strong>Cartes Joueur recrutees</strong> — Toi : ${footballOf(state.recruited1).length}, Bot : ${footballOf(state.recruited2).length}</div>
+    <div><strong>Cartes eliminees au Mercato</strong> — Toi : ${state.eliminated1.length}, Bot : ${state.eliminated2.length}</div>
+    <div><strong>Budget restant</strong> — Toi : ${state.budget1} M€, Bot : ${state.budget2} M€</div>
+  `;
+}
+</script>
+</body>
+</html>
